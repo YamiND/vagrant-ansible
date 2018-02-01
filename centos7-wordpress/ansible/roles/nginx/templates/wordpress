@@ -1,0 +1,33 @@
+server {
+    listen       80;
+    server_name  192.168.1.120;
+    
+    root         /usr/share/nginx/html;
+    index index.php index.html index.htm;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    error_page 404 /404.html;
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root /usr/share/nginx/html;
+    }
+
+    location ~ ^/~(?<user>.+?)(?<path>/.*)?$ {
+        
+        alias /home/$user/public_html/$path;
+        autoindex on;
+        index directory_listing.html;
+
+        location ~ \.php$ {
+            if (!-f $request_filename) { return 404; }
+
+            fastcgi_pass unix:/run/php-fpm/php-fpm.sock;
+            fastcgi_intercept_errors on;
+            include fastcgi_params;
+            fastcgi_param  SCRIPT_FILENAME $request_filename;
+        }
+    }
+}

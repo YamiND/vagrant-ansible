@@ -1,0 +1,32 @@
+- name: Copy Userdir config
+  template:
+    src=userdir.conf
+    dest=/etc/httpd/conf.d/userdir.conf
+  notify:
+    - restart apache
+
+- name: Copy httpd config
+  template:
+    src=httpd.conf
+    dest=/etc/httpd/conf/httpd.conf
+  notify:
+    - restart apache
+
+- name: Copy welcome config (enable index)
+  template:
+    src=welcome.conf
+    dest=/etc/httpd/conf.d/welcome.conf
+  notify:
+    - restart apache
+
+- name: Give permissions to homedir
+  seboolean: 
+    name: httpd_enable_homedirs
+    state: yes
+    persistent: yes
+
+- name: Give SELinux permissions to userdir
+  seboolean:
+    name: httpd_read_user_content
+    state: yes
+    persistent: yes

@@ -1,0 +1,89 @@
+
+- include_vars: ../templates/studentUsers.yml
+
+- name: Download Wordpress and extract to temp
+  get_url:
+    url: https://wordpress.org/latest.zip 
+    dest: /tmp/wordpressLatest.zip
+
+- name: Add student users and create their home dirs
+  user: name={{ item.username }} shell=/bin/bash createhome=yes  password={{ lookup('password', 'credentials/' + item.username + '/password.txt encrypt=md5_crypt') }}
+  with_items: '{{users}}'
+
+- name: Create public_html for each user in file above
+  file: 
+    path: /home/{{ item.username }}/public_html
+    state: directory    
+    owner: '{{item.username}}'
+    group: '{{item.username}}'
+    mode: 0755
+  with_items: '{{users}}'
+
+- name: Copy wordpress files to public_html/wordpress
+  unarchive:
+    src: /tmp/wordpressLatest.zip
+    dest: /home/{{ item.username }}/public_html/
+    remote_src: yes
+  with_items: '{{users}}'
+
+- name: Set SELinux httpd_ attributes
+  sefcontext:
+    target: '/home/{{ item.username }}/public_html(/.*)?'
+    setype: httpd_sys_content_t
+    state: present
+  with_items: '{{users}}'
+
+
+- name: Create database for each user
+  mysql_db:
+    name: '{{item.username}}'
+    state: present
+  with_items: '{{users}}'
+
+- name: Set user privileges for each user database
+  mysql_user:
+    user: "{{item.username}}"
+    password: "changeme"
+    host: localhost
+    state: present
+    priv: "{{item.username}}.*:ALL"
+  with_items: '{{users}}'
+
+
+
+#- name: Copy SQL Template to /tmp folder
+ # template:
+ #   src: wordpressStudentSQL.sql
+  #  dest: /tmp/{{ item.username }}-wordpressStudentSQL.sql
+  #  mode: 0755
+ # with_items: '{{users}}'
+
+#- name: Import SQL File into mariadb
+ # mysql_db:
+  #  state: import
+   # name: all
+    #target: /tmp/{{ item.username }}-wordpressStudentSQL.sql
+  #with_items: '{{users}}'
+
+- name: Copy wp-config Template to /home/user/public_html/wordpress
+  template:
+    src: wp-config.php
+    dest: /home/{{ item.username }}/public_html/wordpress/wp-config.php
+    owner: '{{item.username}}'
+    group: '{{item.username}}'
+    mode: 0755
+  with_items: '{{users}}'
+
+- name: Set ownership recursively in home dir for user:user (fix permissions)
+  file:
+    path: /home/{{ item.username }}
+    owner: '{{item.username}}'
+    group: '{{item.username}}'
+    mode: 0755
+    recurse: yes
+  with_items: '{{users}}'
+
+
+
+
+

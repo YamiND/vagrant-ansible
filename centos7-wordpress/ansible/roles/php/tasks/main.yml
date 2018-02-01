@@ -1,0 +1,7 @@
+- set_fact: role_name=php
+  become: yes
+  become_user: root
+##################################################
+### Install PHP
+- import_tasks: install.yml
+- import_tasks: configure.yml # Let's see if disabling this allows basic php usage

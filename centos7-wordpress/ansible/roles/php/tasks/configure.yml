@@ -1,0 +1,22 @@
+#- name: Download Composer
+ # get_url: 
+  #  url: https://getcomposer.org/installer
+   # dest: /tmp/installer
+
+#- name: Install Composer globally
+#  shell: /usr/bin/php /tmp/installer && /bin/mv -f composer.phar {{ composer_path }} creates={{ composer_path }}
+
+- name: Set cgi.fix_pathinfo to 0
+  lineinfile: 
+    path: /etc/php.ini 
+    regexp: '^(.*)cgi.fix_pathinfo=' 
+    line: cgi.fix_pathinfo=0
+  notify:
+    - restart apache
+
+#- name: Copy PHP-FPM config
+ # template:
+  #  src=www.conf
+   # dest=/etc/php-fpm.d/www.conf
+  #notify:
+   # - restart php-fpm

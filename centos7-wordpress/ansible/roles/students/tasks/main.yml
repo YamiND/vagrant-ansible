@@ -1,0 +1,8 @@
+- set_fact: role_name=students
+  become: yes
+  become_user: root
+##################################################
+### Install, configure and secure webserver
+
+- import_tasks: configure.yml
+#- import_tasks: install.yml

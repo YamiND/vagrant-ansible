@@ -1,4 +1,0 @@
-- name: Install nginx packages
-  yum: 
-    name: nginx 
-    state: installed
